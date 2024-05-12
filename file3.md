@@ -232,3 +232,26 @@ def process(src_path, dst_path, csv_path):
                         writer.writerow(data)
     
     print(f"Total files processed: {file_count}")
+
+#vba
+
+Sub CreateImageLinks()
+   Dim LastRow As Long
+   Dim AssetNumber As String
+   Dim ImageFolder As String
+   Dim ImageFile As String
+   
+   LastRow = Range("A" & Rows.Count).End(xlUp).Row '最終行を取得
+   ImageFolder = "C:\Images\" '画像フォルダのパスを指定
+   
+   For i = 2 To LastRow '2行目から最終行までループ
+       AssetNumber = Format(Cells(i, 1), "000000") '資産番号を6桁の数字に整形
+       ImageFile = ImageFolder & AssetNumber & "-01.jpg" '画像ファイル名を作成
+       
+       If Dir(ImageFile) <> "" Then '画像ファイルが存在する場合
+           Cells(i, 2).Select 'B列の現在の行を選択
+           ActiveSheet.Hyperlinks.Add Anchor:=Selection, Address:=ImageFile, TextToDisplay:=AssetNumber 'ハイパーリンクを設定
+       End If
+   Next i
+End Sub
+
