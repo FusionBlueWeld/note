@@ -255,3 +255,64 @@ Sub CreateImageLinks()
    Next i
 End Sub
 
+#vba ペイント経由
+Sub ExtractImages()
+    Dim ws As Worksheet
+    Dim shp As Shape
+    Dim ImgPath As String
+    Dim ImgName As String
+    
+    Set ws = ActiveSheet '現在のシートを選択
+    ImgPath = "C:\Images\" '画像フォルダのパスを指定
+    
+    For Each shp In ws.Shapes 'シート内の図形を繰り返し処理
+        If shp.Type = msoPicture Then '図形が画像の場合
+            ImgName = shp.TopLeftCell.Address(False, False) '画像の左上のセル位置をファイル名に使用
+            ImgName = Replace(ImgName, "$", "") 'ファイル名から$記号を削除
+            shp.Copy '画像をコピー
+            
+            With CreateObject("WScript.Shell")
+                .Run "mspaint", 1, True 'ペイントを開く
+                .SendKeys "^v" 'ペイントに画像を貼り付け
+                .SendKeys "%fs" '名前を付けて保存ダイアログを開く
+                .SendKeys ImgPath & ImgName & ".jpg" 'ファイル名とパスを入力
+                .SendKeys "%s" '保存
+                .SendKeys "%{F4}" 'ペイントを閉じる
+            End With
+        End If
+    Next shp
+End Sub
+
+#vba excelだけ
+Sub ExtractImages()
+    Dim ws As Worksheet
+    Dim shp As Shape
+    Dim ImgPath As String
+    Dim ImgName As String
+    
+    Set ws = ActiveSheet '現在のシートを選択
+    ImgPath = "C:\Images\" '画像フォルダのパスを指定
+    
+    For Each shp In ws.Shapes 'シート内の図形を繰り返し処理
+        If shp.Type = msoPicture Then '図形が画像の場合
+            ImgName = shp.TopLeftCell.Address(False, False) '画像の左上のセル位置をファイル名に使用
+            ImgName = Replace(ImgName, "$", "") 'ファイル名から$記号を削除
+            
+            'Excelの機能を使用して画像を保存
+            shp.Copy
+            ws.Paste Destination:=ws.Range("A1")
+            ws.Shapes(ws.Shapes.Count).Name = "TempImage"
+            ws.Shapes("TempImage").Copy
+            
+            With ws.ChartObjects.Add(0, 0, 1, 1)
+                .Activate
+                .Chart.Paste
+                .Chart.Export Filename:=ImgPath & ImgName & ".jpg", Filtername:="JPG"
+                .Delete
+            End With
+            
+            ws.Shapes("TempImage").Delete
+        End If
+    Next shp
+End Sub
+
